@@ -12,6 +12,8 @@ public class MainMenu : MonoBehaviour
     public InputField songFile;
     public InputField difficulty;
 
+    public AudioSource audioSource;
+
     public void Quit()
     {
         Application.Quit();
@@ -60,18 +62,41 @@ public class MainMenu : MonoBehaviour
         File.Create(PlayerPrefs.GetString("WorkingDir") + "\\L5.txt");
         File.Create(PlayerPrefs.GetString("WorkingDir") + "\\Wheel.txt");
 
+        // Load in the audio clip to file
+        StartCoroutine(loadSong(PlayerPrefs.GetString("SongDir")));
+
         //TODO: Load the charter portion
     }
 
     public void browseForSongDir()
     {
+        //TODO: REplace this line as EditorUtility doesn't work after build
         string path = EditorUtility.OpenFolderPanel("Select Song Directory", "", "");
         directory.text = path;
     }
 
     public void browseForSongFile()
     {
+        //TODO: REplace this line as EditorUtility doesn't work after build
         string path = EditorUtility.OpenFilePanel("Select Song File", "", "wav");
         songFile.text = path;
+    }
+
+    public IEnumerator loadSong(string path)
+    {
+        WWW www = new WWW(("file://" + path));
+        if (www.error != null)
+        {
+            Debug.Log(www.error);
+        }
+        else
+        {
+            audioSource.clip = www.GetAudioClip();
+            while (audioSource.clip.loadState != AudioDataLoadState.Loaded)
+            {
+                Debug.Log("Loading");
+                yield return new WaitForSeconds(0.1f);
+            }
+        }
     }
 }
